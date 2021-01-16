@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Weather Forecast</string>
+    <string name="permission_rationale">Weather Forecast requires the following permissions to run properly</string>
+    <string name="url">http://api.openweathermap.org/data/2.5/group?id=%1$d&amp;appid=16b06166ac70e49bd3be556c69316b84</string>
+</resources>
