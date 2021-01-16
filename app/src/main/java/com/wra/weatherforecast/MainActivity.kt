@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.ui.AppBarConfiguration
 import com.wra.weatherforecast.databinding.ActivityMainBinding
@@ -44,11 +46,23 @@ class MainActivity : AppCompatActivity(){
             REQUEST_PERMISSION_CODE,
             Manifest.permission.INTERNET
         )
-
-        checkPermission(Manifest.permission.INTERNET, "Internet", REQUEST_PERMISSION_CODE)
+        checkNetwork()
+        refreshApp()
         val fragment = WeatherForecastMainFragment()
         switchFragment(fragment, "list")
-        refreshApp()
+
+    }
+
+    private fun checkNetwork(){
+        val networkConnection = NetworkConnection(applicationContext)
+        networkConnection.observe(this, Observer {
+            if(it){
+                checkPermission(Manifest.permission.INTERNET, "Internet", REQUEST_PERMISSION_CODE)
+            } else {
+                swipeToRefresh.isRefreshing = false
+                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
 
@@ -60,11 +74,6 @@ class MainActivity : AppCompatActivity(){
             val fragment = WeatherForecastMainFragment()
             switchFragment(fragment, "list")
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        checkPermission(Manifest.permission.INTERNET, "Internet", REQUEST_PERMISSION_CODE)
     }
 
     private fun checkPermission(permission: String, name: String, requestCode: Int){
@@ -81,6 +90,8 @@ class MainActivity : AppCompatActivity(){
 
                 else -> ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
             }
+        } else {
+            weatherForecast().execute(Urls.FETCH_WEATHER)
         }
     }
 
@@ -116,7 +127,7 @@ class MainActivity : AppCompatActivity(){
 
     private fun refreshApp() {
         swipeToRefresh.setOnRefreshListener {
-            checkPermission(Manifest.permission.INTERNET, "Internet", REQUEST_PERMISSION_CODE)
+            checkNetwork()
         }
     }
 
